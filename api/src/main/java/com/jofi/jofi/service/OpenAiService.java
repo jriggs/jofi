@@ -23,9 +23,23 @@ public class OpenAiService {
 
     public String analyzeMetrics(String aggressiveLevel, List<StockMetric> metrics) throws IOException, InterruptedException {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("Consider the following stock metrics for someone whose investment strategy is ")
+        prompt.append("Consider the following stock metrics for someone whose investment preference is ")
               .append(aggressiveLevel)
-              .append(":\nShould any stock be removed? Keep the response under 200 words. We have included ALLSYMBOLS which is an aggregate of all symbols in the profile and not an individual stock. stock only use it for your reference\n\n");
+              .append(" risk.\n")
+              .append("Should any stock be removed? Keep the response under 200 words.\n\n");
+
+        StockMetric allSymbols = metrics.stream()
+                .filter(m -> "ALLSYMBOLS".equals(m.getSymbol()))
+                .findFirst()
+                .orElse(null);
+        // If found, append its details
+        if (allSymbols != null) {
+            prompt.append("Aggregate Metrics:\n")
+                  .append(String.format("- High: %.2f, Low: %.2f, First: %.2f, Last: %.2f, Return: %.2f%%\n",
+                          allSymbols.getHigh(), allSymbols.getLow(), allSymbols.getFirst(), allSymbols.getLast(), allSymbols.getPercentReturn() * 100));
+                metrics.remove(allSymbols);
+                } 
+
 
         for (StockMetric m : metrics) {
             prompt.append(String.format("- %s: High=%.2f, Low=%.2f, First=%.2f, Last=%.2f, Return=%.2f%%\n",
@@ -62,11 +76,10 @@ public class OpenAiService {
         return escapeHtml(content);
     }
 
-  
-        private String escapeHtml(String input) {
-            return input.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("'", "&#39;");
-        }
+    private String escapeHtml(String input) {
+        return input.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("'", "&#39;");
+    }
 }
