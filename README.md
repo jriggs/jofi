@@ -26,9 +26,6 @@ Jofi is a full-stack web application that helps users analyze stock performance 
 
 ---
 
-
----
-
 ## ⚙️ Setup Instructions
 
 ### 🔧 Backend (Spring Boot)
@@ -38,15 +35,21 @@ cd api
 cp .env.example .env  # Add your API keys
 ./mvnw clean package
 ./mvnw spring-boot:run
+```
 
 ### 🔧 UI (Angular)
+```bash
 cd frontend
 npm install
-ng serve
+npm start
+```
 
 ### environment variables
 OPENAI_API_KEY=sk-...
+
 HUGGINGFACE_API_KEY=hf-...
 
+---
+
 ## 📄 License
-MIT License. See LICENSE for details.
+MIT License.
