@@ -9,6 +9,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/analysis")
+@CrossOrigin(origins = "https://jofi.netlify.app", allowCredentials = "true")
 public class AnalysisController {
 
     private final OpenAiService openAiService;

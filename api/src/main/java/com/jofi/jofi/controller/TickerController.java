@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tickers")
+@CrossOrigin(origins = "https://jofi.netlify.app", allowCredentials = "true")
 public class TickerController {
 
     private final TickerRepository repository;

@@ -18,6 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stock")
+@CrossOrigin(origins = "https://jofi.netlify.app", allowCredentials = "true")
 public class StockDataController {
     private final StockDataService stockDataService;
     private final TickerRepository tickerRepository;
