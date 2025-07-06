@@ -15,6 +15,7 @@ import { StockService } from '../../services/stock';
 import { Ticker } from '../../models/ticker';
 import { StockDailyData } from '../../models/stockData';
 import { TickerService } from '../../services/ticker';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -32,7 +33,7 @@ import { TickerService } from '../../services/ticker';
 })
 export class HomeComponent implements OnInit {
   tickers: Ticker[] = [];
-  selectedSymbol: string = '';
+  selectedSymbols: string[] = [];
 
   chartSeries: ApexAxisChartSeries = [];
   chartDetails: ApexChart = {
@@ -50,6 +51,8 @@ export class HomeComponent implements OnInit {
     },
   };
 
+  private stockDataCache: Map<string, StockDailyData[]> = new Map();
+
   constructor(
     private tickerService: TickerService,
     private stockService: StockService
@@ -66,10 +69,9 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  onTickerChange(symbol: string) {
-    this.selectedSymbol = symbol;
-    if (symbol) {
-      this.loadStockData(symbol);
+  onTickersChange() {
+    if (this.selectedSymbols.length) {
+      this.loadMultipleStockData(this.selectedSymbols);
     } else {
       this.chartSeries = [];
       this.chartXAxis = { categories: [] };
@@ -77,36 +79,51 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  loadStockData(symbol: string) {
-    this.stockService.getStockData(symbol).subscribe({
-      next: (data: StockDailyData[]) => {
+  async loadMultipleStockData(symbols: string[]) {
+    try {
+      const series: ApexAxisChartSeries = [];
+      let xCategories: string[] = [];
+      let titleParts: string[] = [];
+
+      for (const symbol of symbols) {
+        let data: StockDailyData[];
+
+        if (this.stockDataCache.has(symbol)) {
+          data = this.stockDataCache.get(symbol)!;
+        } else {
+          data = await firstValueFrom(this.stockService.getStockData(symbol));
+          this.stockDataCache.set(symbol, data);
+        }
+
         const closePrices = data.map((d) => d.close);
-        const maxClose = Math.max(...closePrices);
-        const minClose = Math.min(...closePrices);
-        // get name of the symbol
-        const companyName = this.tickers.find((t) => t.symbol === symbol);
+        const companyName = this.tickers.find((t) => t.symbol === symbol)?.name || symbol;
         const percentChange =
-          ((closePrices[closePrices.length - 1] - closePrices[0]) /
-            closePrices[0]) *
-          100;
-        this.chartSeries = [
-          {
-            name: symbol,
-            data: closePrices,
-          },
-        ];
-        this.chartXAxis = {
-          categories: data.map((d) => d.date),
-        };
-        this.chartTitle = {
-          text: `${
-            companyName?.name || symbol
-          } Close Price (1mo) Gain/Loss: ${percentChange.toFixed(
-            2
-          )}%  Max: ${maxClose.toFixed(2)} Min: ${minClose.toFixed(2)}`,
-        };
-      },
-      error: (err) => console.error('API error (stock data):', err),
-    });
+          ((closePrices[closePrices.length - 1] - closePrices[0]) / closePrices[0]) * 100;
+
+        series.push({
+          name: symbol,
+          data: closePrices,
+        });
+
+        if (xCategories.length === 0) {
+          xCategories = data.map((d) => d.date);
+        }
+
+        titleParts.push(`${companyName}: ${percentChange.toFixed(2)}%`);
+      }
+
+      this.chartSeries = series;
+      this.chartXAxis = { categories: xCategories };
+      this.chartTitle = {
+        text: `Stock Comparison – ${titleParts.join(' | ')}`,
+      };
+    } catch (err) {
+      console.error('API error (multi-stock):', err);
+    }
+  }
+
+  clearCache() {
+    this.stockDataCache.clear();
+    this.onTickersChange();
   }
 }

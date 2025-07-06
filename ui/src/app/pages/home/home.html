@@ -1,10 +1,9 @@
 <mat-card>
-  <h2 style="margin-bottom: 16px;">Select a Stock</h2>
+  <h2 style="margin-bottom: 16px;">Select Stocks</h2>
   <div>
     <mat-form-field appearance="fill" style="width: 25rem;">
-      <mat-label>Select a Ticker</mat-label>
-      <mat-select [(ngModel)]="selectedSymbol" (selectionChange)="onTickerChange($event.value)">
-        <mat-option value="">(none selected)</mat-option>
+      <mat-label>Select Tickers</mat-label>
+      <mat-select [(ngModel)]="selectedSymbols" multiple (selectionChange)="onTickersChange()">
         <mat-option *ngFor="let ticker of tickers" [value]="ticker.symbol">
           {{ ticker.symbol }}
         </mat-option>
