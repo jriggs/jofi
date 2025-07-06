@@ -1,0 +1,68 @@
+<h2>Edit Tickers</h2>
+
+<table mat-table [dataSource]="tickers" class="mat-elevation-z8 ticker-table">
+
+  <ng-container matColumnDef="symbol">
+    <th mat-header-cell *matHeaderCellDef>Symbol</th>
+    <td mat-cell *matCellDef="let t">
+      <input matInput [(ngModel)]="t.symbol" />
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="name">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let t">
+      <input matInput [(ngModel)]="t.name" />
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="description">
+    <th mat-header-cell *matHeaderCellDef>Description</th>
+    <td mat-cell *matCellDef="let t">
+      <input matInput [(ngModel)]="t.description" />
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="aggressiveLevel">
+    <th mat-header-cell *matHeaderCellDef>Aggressive Level</th>
+    <td mat-cell *matCellDef="let t">
+      <input matInput [(ngModel)]="t.aggressiveLevel" />
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="actions">
+    <th mat-header-cell *matHeaderCellDef>Actions</th>
+    <td mat-cell *matCellDef="let t">
+      <button mat-button color="primary" (click)="save(t)">Save</button>
+      <button mat-button color="warn" (click)="delete(t.id)">Delete</button>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>
+
+<h3>Add New Ticker</h3>
+<div class="add-ticker-form">
+  <mat-form-field appearance="outline">
+    <mat-label>Symbol</mat-label>
+    <input matInput [(ngModel)]="newTicker.symbol" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Name</mat-label>
+    <input matInput [(ngModel)]="newTicker.name" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Description</mat-label>
+    <input matInput [(ngModel)]="newTicker.description" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Aggressive Level</mat-label>
+    <input matInput [(ngModel)]="newTicker.aggressiveLevel" />
+  </mat-form-field>
+
+  <button mat-raised-button color="primary" (click)="add()">Add</button>
+</div>

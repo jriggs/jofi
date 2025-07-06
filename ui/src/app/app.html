@@ -1,0 +1,23 @@
+<div class="app-wrapper">
+  <header class="navbar">
+    <div class="nav-container">
+      <a class="logo" routerLink="/" aria-label="JoFi logo" role="img">
+        <span>📊</span> jofi
+      </a>
+      <nav class="nav-links">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        <a routerLink="/analysis" routerLinkActive="active">Analysis</a>
+        <a routerLink="/edit" routerLinkActive="active">Edit</a>
+        <a routerLink="/about" routerLinkActive="active">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="footer">
+    <p>© {{ currentYear }} jofi Services Inc.</p>
+  </footer>
+</div>

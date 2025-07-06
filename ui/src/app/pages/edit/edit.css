@@ -1,0 +1,37 @@
+/* Reduce row height */
+.ticker-table .mat-mdc-row {
+  height: 32px !important;
+  min-height: 32px !important;
+}
+
+/* Reduce cell padding */
+.ticker-table .mat-mdc-cell,
+.ticker-table .mat-mdc-header-cell {
+  padding: 2px 6px !important;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+/* Compact the MDC input wrapper */
+.ticker-table .mat-mdc-form-field {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 28px !important;
+  min-height: 28px !important;
+}
+
+/* Shrink the actual input element */
+.ticker-table input.mat-mdc-input-element {
+  height: 24px !important;
+  padding: 2px 4px !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+
+/* Optional: remove underline if not needed */
+.ticker-table .mat-mdc-form-field-subscript-wrapper,
+.ticker-table .mat-mdc-form-field-bottom-align {
+  display: none !important;
+}

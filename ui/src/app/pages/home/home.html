@@ -1,0 +1,24 @@
+<mat-card>
+  <h2 style="margin-bottom: 16px;">Select a Stock</h2>
+  <div>
+    <mat-form-field appearance="fill" style="width: 25rem;">
+      <mat-label>Select a Ticker</mat-label>
+      <mat-select [(ngModel)]="selectedSymbol" (selectionChange)="onTickerChange($event.value)">
+        <mat-option value="">(none selected)</mat-option>
+        <mat-option *ngFor="let ticker of tickers" [value]="ticker.symbol">
+          {{ ticker.symbol }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</mat-card>
+
+<mat-card *ngIf="chartSeries.length" style="margin-top: 16px;">
+  <apx-chart
+    [series]="chartSeries"
+    [chart]="chartDetails"
+    [xaxis]="chartXAxis"
+    [yaxis]="chartYAxis"
+    [title]="chartTitle"
+  ></apx-chart>
+</mat-card>

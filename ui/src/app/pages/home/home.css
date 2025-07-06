@@ -1,0 +1,12 @@
+mat-card h2 {
+  margin-bottom: 16px;
+}
+
+mat-form-field {
+  width: 25rem;
+  padding: 0 16px;
+}
+
+mat-card + mat-card {
+  margin-top: 16px;
+}

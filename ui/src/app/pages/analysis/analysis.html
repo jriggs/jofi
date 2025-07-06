@@ -1,0 +1,59 @@
+<mat-card>
+  <h2>Select Stock's Aggressive Category</h2>
+  <div class="button-group">
+    <button
+      *ngFor="let level of levels"
+      mat-raised-button
+      color="primary"
+      (click)="selectLevel(level)"
+      [disabled]="loading"
+    >
+      {{ level }}
+    </button>
+  </div>
+</mat-card>
+
+<mat-progress-spinner
+  *ngIf="loading"
+  mode="indeterminate"
+  diameter="50"
+  class="spinner"
+></mat-progress-spinner>
+
+<div class="chart-container" *ngIf="!loading && chartSeries.length && barChartSeries.length">
+  <mat-card class="chart-card">
+    <h3>Combined Chart for "{{ selectedLevel }}" Stocks</h3>
+    <apx-chart
+      [series]="chartSeries"
+      [chart]="chartDetails"
+      [xaxis]="chartXAxis"
+      [yaxis]="chartYAxis"
+      [title]="chartTitle"
+    ></apx-chart>
+  </mat-card>
+
+  <mat-card class="chart-card">
+    <h3>Performance Metrics for "{{ selectedLevel }}" Stocks</h3>
+    <apx-chart
+      [series]="barChartSeries"
+      [chart]="barChartDetails"
+      [xaxis]="barChartXAxis"
+      [yaxis]="barChartYAxis"
+      [title]="barChartTitle"
+      [dataLabels]="barChartDataLabels"
+    ></apx-chart>
+  </mat-card>
+</div>
+
+<mat-card *ngIf="!loading && barChartSeries.length">
+  <button
+    mat-raised-button
+    color="accent"
+    (click)="runAiAnalysis()"
+    [disabled]="aiLoading"
+  >
+    {{ aiLoading ? 'Analyzing...' : 'Run AI Analysis' }}
+  </button>
+
+  <div [innerHTML]="aiResult"></div>
+</mat-card>
