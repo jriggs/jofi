@@ -1,10 +1,10 @@
 # ---------- Stage 1: Build the Spring Boot app ----------
-FROM eclipse-temurin:17-jdk AS build
+FROM eclipse-temurin:21-jdk AS build
 
-# Set working directory
+# Set working directory inside the container
 WORKDIR /app
 
-# Copy everything into the container
+# Copy everything from the /api folder into the container
 COPY . .
 
 # Ensure the Maven wrapper is executable
@@ -14,15 +14,15 @@ RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
 # ---------- Stage 2: Run the built app ----------
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 
-# Set working directory
+# Set working directory for the runtime container
 WORKDIR /app
 
-# Copy the built JAR from the previous stage
+# Copy the built JAR from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the port Spring Boot runs on
+# Expose the port your Spring Boot app runs on
 EXPOSE 8080
 
 # Run the application
