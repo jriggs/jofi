@@ -3,10 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { StockDailyData } from '../models/stockData';
 import { StockMetric } from '../models/stockMetric';
+import { environment } from '../../environments/environment'
 
 @Injectable({ providedIn: 'root' })
 export class StockService {
-  private baseUrl = '/api/stock';
+  private baseUrl = `${environment.apiUrl}/stock`;
 
   constructor(private http: HttpClient) {}
 

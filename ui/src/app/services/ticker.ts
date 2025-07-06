@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Ticker } from '../models/ticker';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TickerService {
-  private baseUrl = '/api/tickers';
+  private baseUrl = `${environment.apiUrl}/tickers`;
 
   constructor(private http: HttpClient) {}
 
