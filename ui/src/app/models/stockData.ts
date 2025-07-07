@@ -6,4 +6,5 @@ export interface StockDailyData {
   low: number;
   close: number;
   volume: number;
+  percentChange: number;
 }

@@ -9,7 +9,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/analysis")
-@CrossOrigin(origins = "https://jofi.netlify.app", allowCredentials = "true")
+@CrossOrigin(origins = "*")
 public class AnalysisController {
 
     private final OpenAiService openAiService;
@@ -18,7 +18,7 @@ public class AnalysisController {
         this.openAiService = openAiService;
     }
 
-    @PostMapping("")
+    @PostMapping("/run")
     public ResponseEntity<String> analyze(@RequestParam String aggressiveLevel, @RequestBody List<StockMetric> metrics) throws IOException, InterruptedException {
         String result = openAiService.analyzeMetrics(aggressiveLevel, metrics);
         return ResponseEntity.ok(result);

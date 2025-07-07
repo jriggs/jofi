@@ -7,6 +7,8 @@ import {
   ApexAxisChartSeries,
   ApexXAxis,
   ApexTitleSubtitle,
+  ApexYAxis,
+  ApexTooltip
 } from 'ng-apexcharts';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -44,11 +46,18 @@ export class HomeComponent implements OnInit {
     animations: { enabled: false },
   };
   chartXAxis: ApexXAxis = { categories: [] };
-  chartTitle: ApexTitleSubtitle = { text: 'Stock Price' };
-  chartYAxis: any = {
+  chartTitle: ApexTitleSubtitle = { text: 'Stock % Change' };
+  chartYAxis: ApexYAxis = {
+    title: { text: '% Change' },
     labels: {
-      formatter: (val: number) => val.toFixed(2),
-    },
+      formatter: (val: number) => `${val.toFixed(2)}%`
+    }
+  };
+  chartTooltip: ApexTooltip = {
+    shared: true,
+    y: {
+      formatter: (val: number) => `${val.toFixed(2)}%`
+    }
   };
 
   private stockDataCache: Map<string, StockDailyData[]> = new Map();
@@ -75,7 +84,7 @@ export class HomeComponent implements OnInit {
     } else {
       this.chartSeries = [];
       this.chartXAxis = { categories: [] };
-      this.chartTitle = { text: 'Stock Price' };
+      this.chartTitle = { text: 'Stock % Change' };
     }
   }
 
@@ -95,27 +104,33 @@ export class HomeComponent implements OnInit {
           this.stockDataCache.set(symbol, data);
         }
 
-        const closePrices = data.map((d) => d.close);
-        const companyName = this.tickers.find((t) => t.symbol === symbol)?.name || symbol;
-        const percentChange =
-          ((closePrices[closePrices.length - 1] - closePrices[0]) / closePrices[0]) * 100;
+        if (!data.length) continue;
+
+        const percentChanges = data.map(d => d.percentChange);
+        const companyName = this.tickers.find(t => t.symbol === symbol)?.name || symbol;
 
         series.push({
-          name: symbol,
-          data: closePrices,
+          name: `${symbol}`,
+          data: percentChanges,
+          type: 'line',
         });
 
         if (xCategories.length === 0) {
-          xCategories = data.map((d) => d.date);
+          xCategories = data.map(d => d.date);
         }
 
-        titleParts.push(`${companyName}: ${percentChange.toFixed(2)}%`);
+        // Calculate overall % change for title
+        const firstClose = data[0].close;
+        const lastClose = data[data.length - 1].close;
+        const overallPercentChange = ((lastClose - firstClose) / firstClose) * 100;
+
+        titleParts.push(`${companyName}: ${overallPercentChange.toFixed(2)}%`);
       }
 
       this.chartSeries = series;
       this.chartXAxis = { categories: xCategories };
       this.chartTitle = {
-        text: `Stock Comparison – ${titleParts.join(' | ')}`,
+        text: `Overall % Change – ${titleParts.join(' | ')}`
       };
     } catch (err) {
       console.error('API error (multi-stock):', err);

@@ -154,58 +154,71 @@ public class StockDataService {
         return data.get(data.size() - 1);
     }
     
-    private List<StockData> parseYahooFinanceResponse(String jsonData, String symbol) throws StockDataException {
-        try {
-            JsonNode root = mapper.readTree(jsonData);
-            JsonNode chart = root.get("chart");
-            
-            if (chart == null ) {
-                throw new StockDataException("Invalid symbol or API error: " + symbol);
-            }
-            
-            JsonNode result = chart.get("result").get(0);
-            JsonNode timestamps = result.get("timestamp");
-            JsonNode indicators = result.get("indicators").get("quote").get(0);
-            
-            JsonNode opens = indicators.get("open");
-            JsonNode highs = indicators.get("high");
-            JsonNode lows = indicators.get("low");
-            JsonNode closes = indicators.get("close");
-            JsonNode volumes = indicators.get("volume");
-            
-            List<StockData> stockDataList = new ArrayList<>();
-            
-            for (int i = 0; i < timestamps.size(); i++) {
-                long timestamp = timestamps.get(i).asLong();
-                
-                // Skip if any required data is null
-                if (opens.get(i).isNull() || closes.get(i).isNull()) {
-                    continue;
-                }
-                
-                LocalDate date = Instant.ofEpochSecond(timestamp)
-                    .atZone(ZoneOffset.UTC)
-                    .toLocalDate();
-                
-                StockData stockData = new StockData(
-                    symbol,
-                    date,
-                    opens.get(i).asDouble(),
-                    highs.get(i).asDouble(),
-                    lows.get(i).asDouble(),
-                    closes.get(i).asDouble(),
-                    volumes.get(i).asLong()
-                );
-                
-                stockDataList.add(stockData);
-            }
-            
-            return stockDataList;
-            
-        } catch (Exception e) {
-            throw new StockDataException("Error parsing stock data response", e);
+   private List<StockData> parseYahooFinanceResponse(String jsonData, String symbol) throws StockDataException {
+    try {
+        JsonNode root = mapper.readTree(jsonData);
+        JsonNode chart = root.get("chart");
+
+        if (chart == null) {
+            throw new StockDataException("Invalid symbol or API error: " + symbol);
         }
+
+        JsonNode result = chart.get("result").get(0);
+        JsonNode timestamps = result.get("timestamp");
+        JsonNode indicators = result.get("indicators").get("quote").get(0);
+
+        JsonNode opens = indicators.get("open");
+        JsonNode highs = indicators.get("high");
+        JsonNode lows = indicators.get("low");
+        JsonNode closes = indicators.get("close");
+        JsonNode volumes = indicators.get("volume");
+
+        List<StockData> stockDataList = new ArrayList<>();
+        Double previousClose = null;
+
+        for (int i = 0; i < timestamps.size(); i++) {
+            if (opens.get(i).isNull() || closes.get(i).isNull()) {
+                continue;
+            }
+
+            long timestamp = timestamps.get(i).asLong();
+            LocalDate date = Instant.ofEpochSecond(timestamp)
+                .atZone(ZoneOffset.UTC)
+                .toLocalDate();
+
+            double open = opens.get(i).asDouble();
+            double high = highs.get(i).asDouble();
+            double low = lows.get(i).asDouble();
+            double close = closes.get(i).asDouble();
+            long volume = volumes.get(i).asLong();
+
+            Double percentChange = null;
+            if (previousClose != null && previousClose != 0.0) {
+                percentChange = ((close - previousClose) / previousClose) * 100;
+            }
+
+            StockData stockData = new StockData(
+                symbol,
+                date,
+                open,
+                high,
+                low,
+                close,
+                volume,
+                percentChange
+            );
+
+            stockDataList.add(stockData);
+            previousClose = close;
+        }
+
+        return stockDataList;
+
+    } catch (Exception e) {
+        throw new StockDataException("Error parsing stock data response", e);
     }
+}
+
     
     private void validateInputs(String symbol, String period) throws StockDataException {
         if (symbol == null || symbol.trim().isEmpty()) {

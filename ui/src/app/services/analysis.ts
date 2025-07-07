@@ -12,9 +12,10 @@ export class AnalysisService {
 
     analyze(metrics: StockMetric[], aggressiveLevel: string): Observable<string> {
     const params = new HttpParams().set('aggressiveLevel', aggressiveLevel);
-    return this.http.post(this.baseUrl, metrics, {
+    const url = `${this.baseUrl}/run`; 
+    return this.http.post(url, metrics, {
       params,
-      responseType: 'text', // Expecting plain text from Hugging Face
+      responseType: 'text',
     });
   }
 }

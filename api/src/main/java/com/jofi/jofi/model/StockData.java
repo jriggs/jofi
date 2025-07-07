@@ -2,6 +2,8 @@ package com.jofi.jofi.model;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 // Data class for stock information
 public class StockData {
     private final String symbol;
@@ -11,9 +13,10 @@ public class StockData {
     private final double low;
     private final double close;
     private final long volume;
+    private final Double percentChange;
     
     public StockData(String symbol, LocalDate date, double open, double high, 
-                     double low, double close, long volume) {
+                     double low, double close, long volume, Double percentChange) {
         this.symbol = symbol;
         this.date = date;
         this.open = open;
@@ -21,6 +24,7 @@ public class StockData {
         this.low = low;
         this.close = close;
         this.volume = volume;
+        this.percentChange = percentChange;
     }
     
     // Getters
@@ -31,6 +35,7 @@ public class StockData {
     public double getLow() { return low; }
     public double getClose() { return close; }
     public long getVolume() { return volume; }
+    public Double getPercentChange() { return percentChange; }
     
     @Override
     public String toString() {

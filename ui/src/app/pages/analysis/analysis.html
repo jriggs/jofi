@@ -1,15 +1,27 @@
 <mat-card>
   <h2>Select Stock's Aggressive Category</h2>
   <div class="button-group">
-    <button
-      *ngFor="let level of levels"
-      mat-raised-button
-      color="primary"
-      (click)="selectLevel(level)"
-      [disabled]="loading"
-    >
-      {{ level }}
-    </button>
+    <div class="level-buttons">
+      <button
+        *ngFor="let level of levels"
+        mat-raised-button
+        color="primary"
+        (click)="selectLevel(level)"
+        [disabled]="loading"
+      >
+        {{ level }}
+      </button>
+    </div>
+    <div class="toggle-button">
+      <button
+        mat-stroked-button
+        color="accent"
+        (click)="toggleChartMode()"
+        [disabled]="loading"
+      >
+        Show {{ showPercentChange ? 'Close Prices' : 'Daily % Change' }}
+      </button>
+    </div>
   </div>
 </mat-card>
 
@@ -22,7 +34,6 @@
 
 <div class="chart-container" *ngIf="!loading && chartSeries.length && barChartSeries.length">
   <mat-card class="chart-card">
-    <h3>Combined Chart for "{{ selectedLevel }}" Stocks</h3>
     <apx-chart
       [series]="chartSeries"
       [chart]="chartDetails"

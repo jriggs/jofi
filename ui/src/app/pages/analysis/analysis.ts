@@ -13,6 +13,7 @@ import {
   ApexYAxis,
   ApexTitleSubtitle,
   ApexDataLabels,
+  ApexTooltip,
   NgApexchartsModule,
 } from 'ng-apexcharts';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,6 +39,7 @@ export class AnalysisComponent implements OnInit {
   loading = false;
   aiLoading = false;
   aiResult = '';
+  showPercentChange = true;
 
   chartSeries: ApexAxisChartSeries = [];
   chartDetails: ApexChart = {
@@ -51,6 +53,12 @@ export class AnalysisComponent implements OnInit {
   chartTitle: ApexTitleSubtitle = { text: 'Stock Price' };
   chartYAxis: ApexYAxis = {
     labels: {
+      formatter: (val: number) => val.toFixed(2),
+    },
+  };
+  chartTooltip: ApexTooltip = {
+    shared: true,
+    y: {
       formatter: (val: number) => val.toFixed(2),
     },
   };
@@ -73,6 +81,9 @@ export class AnalysisComponent implements OnInit {
     enabled: false,
   };
 
+  private stockDataCache: Record<string, Record<string, StockDailyData[]>> = {};
+  private metricCache: Record<string, StockMetric[]> = {};
+
   constructor(
     private stockService: StockService,
     private tickerService: TickerService,
@@ -86,54 +97,31 @@ export class AnalysisComponent implements OnInit {
     });
   }
 
+  toggleChartMode() {
+    this.showPercentChange = !this.showPercentChange;
+    if (this.selectedLevel && this.stockDataCache[this.selectedLevel]) {
+      this.updateChartFromData(this.stockDataCache[this.selectedLevel]);
+    }
+  }
+
   selectLevel(level: string) {
     this.selectedLevel = level;
-    this.loading = true;
     this.aiResult = '';
+
+    if (this.stockDataCache[level]) {
+      this.updateChartFromData(this.stockDataCache[level]);
+      this.updateBarChart(this.metricCache[level] || []);
+      return;
+    }
+
+    this.loading = true;
 
     this.stockService.getStockByAggression(level).subscribe({
       next: (response) => {
-        const data: Record<string, StockDailyData[]> = response.stockData;
-        const metrics: StockMetric[] = response.metrics;
-
-        const allDates = new Set<string>();
-        const series: ApexAxisChartSeries = [];
-
-        for (const symbol in data) {
-          const entries = data[symbol];
-          if (Array.isArray(entries)) {
-            entries.forEach((d) => allDates.add(d.date));
-          }
-        }
-
-        const sortedDates = Array.from(allDates).sort();
-
-        for (const symbol in data) {
-          const dateToClose = new Map(
-            data[symbol].map((d) => [d.date, d.close])
-          );
-          const alignedData = sortedDates.map(
-            (date) => dateToClose.get(date) ?? null
-          );
-          series.push({ name: symbol, data: alignedData });
-        }
-
-        this.chartSeries = series;
-        this.chartXAxis.categories = sortedDates;
-
-        const categories = metrics.map((m) => {
-          const percent = (m.percentReturn * 100).toFixed(2);
-          return `${m.symbol} (${percent}%)`;
-        });
-
-        this.barChartSeries = [
-          { name: 'High', data: metrics.map((m) => +m.high.toFixed(2)) },
-          { name: 'Low', data: metrics.map((m) => +m.low.toFixed(2)) },
-          { name: 'First', data: metrics.map((m) => +m.first.toFixed(2)) },
-          { name: 'Last', data: metrics.map((m) => +m.last.toFixed(2)) },
-        ];
-
-        this.barChartXAxis.categories = categories;
+        this.stockDataCache[level] = response.stockData;
+        this.metricCache[level] = response.metrics;
+        this.updateChartFromData(response.stockData);
+        this.updateBarChart(response.metrics);
         this.loading = false;
       },
       error: (err) => {
@@ -141,6 +129,82 @@ export class AnalysisComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  private updateChartFromData(data: Record<string, StockDailyData[]>) {
+    const allDates = new Set<string>();
+    const series: ApexAxisChartSeries = [];
+
+    for (const symbol in data) {
+      const entries = data[symbol];
+      if (Array.isArray(entries)) {
+        entries.forEach((d) => allDates.add(d.date));
+      }
+    }
+
+    const sortedDates = Array.from(allDates).sort();
+
+    for (const symbol in data) {
+      const entries = data[symbol];
+      const dateToValue = new Map<string, number>();
+
+      for (const entry of entries) {
+        const value = this.showPercentChange
+          ? entry.percentChange ?? null
+          : entry.close;
+        dateToValue.set(entry.date, value);
+      }
+
+      const alignedData = sortedDates.map(
+        (date) => dateToValue.get(date) ?? null
+      );
+
+      series.push({ name: symbol, data: alignedData });
+    }
+
+    this.chartSeries = series;
+    this.chartXAxis.categories = sortedDates;
+    this.chartTitle = {
+      text: this.showPercentChange
+        ? 'Daily % Change for Selected Stocks'
+        : 'Stock Price for Selected Stocks',
+    };
+
+    // 🔑 Update Y-axis and tooltip formatting based on mode
+    this.chartYAxis = {
+      labels: {
+        formatter: (val: number) =>
+          this.showPercentChange
+            ? `${val.toFixed(2)}%`
+            : val.toFixed(2),
+      },
+    };
+
+    this.chartTooltip = {
+      shared: true,
+      y: {
+        formatter: (val: number) =>
+          this.showPercentChange
+            ? `${val.toFixed(2)}%`
+            : val.toFixed(2),
+      },
+    };
+  }
+
+  private updateBarChart(metrics: StockMetric[]) {
+    const categories = metrics.map((m) => {
+      const percent = (m.percentReturn * 100).toFixed(2);
+      return `${m.symbol} (${percent}%)`;
+    });
+
+    this.barChartSeries = [
+      { name: 'High', data: metrics.map((m) => +m.high.toFixed(2)) },
+      { name: 'Low', data: metrics.map((m) => +m.low.toFixed(2)) },
+      { name: 'First', data: metrics.map((m) => +m.first.toFixed(2)) },
+      { name: 'Last', data: metrics.map((m) => +m.last.toFixed(2)) },
+    ];
+
+    this.barChartXAxis.categories = categories;
   }
 
   runAiAnalysis() {
